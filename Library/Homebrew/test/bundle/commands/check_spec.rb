@@ -6,7 +6,10 @@ require "bundle/brew_checker"
 require "bundle/mac_app_store_checker"
 require "bundle/vscode_extension_checker"
 require "bundle/brew_installer"
+require "bundle/cask_installer"
 require "bundle/mac_app_store_installer"
+require "bundle/dsl"
+require "bundle/skipper"
 
 RSpec.describe Homebrew::Bundle::Commands::Check do
   let(:do_check) do

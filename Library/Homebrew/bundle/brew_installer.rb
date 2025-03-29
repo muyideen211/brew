@@ -27,6 +27,7 @@ module Homebrew
         @start_service = options.fetch(:start_service, @restart_service)
         @link = options.fetch(:link, nil)
         @postinstall = options.fetch(:postinstall, nil)
+        @version_file = options.fetch(:version_file, nil)
         @changed = nil
       end
 
@@ -57,6 +58,20 @@ module Homebrew
 
           postinstall_result = postinstall_change_state!(verbose:)
           result &&= postinstall_result
+
+          if result && @version_file.present?
+            # Use the version from the environment if it hasn't changed.
+            # Strip the revision number because it's not part of the non-Homebrew version.
+            version = if !changed? && (env_version = Bundle.formula_versions_from_env[@name])
+              PkgVersion.parse(env_version).version
+            else
+              Formula[@full_name].version
+            end.to_s
+            version_path = Pathname.new(@version_file)
+            version_path.write("#{version}\n")
+
+            puts "Wrote #{@name} version #{version} to #{@version_file}" if verbose
+          end
         end
 
         result
@@ -98,12 +113,15 @@ module Homebrew
 
       def service_change_state!(verbose:)
         require "bundle/brew_services"
+
+        file = Bundle::BrewServices.versioned_service_file(@name)
+
         if restart_service_needed?
           puts "Restarting #{@name} service." if verbose
-          BrewServices.restart(@full_name, verbose:)
+          BrewServices.restart(@full_name, file:, verbose:)
         elsif start_service_needed?
           puts "Starting #{@name} service." if verbose
-          BrewServices.start(@full_name, verbose:)
+          BrewServices.start(@full_name, file:, verbose:)
         else
           true
         end
