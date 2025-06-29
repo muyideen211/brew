@@ -397,8 +397,7 @@ required and recommended dependencies.
 
 If any version of each formula argument is installed and no other options are
 passed, this command displays their actual runtime dependencies (similar to
-`brew linkage`), which may differ from the current versions' stated dependencies
-if the installed versions are outdated.
+`brew linkage`), which may differ from a formula's declared dependencies.
 
 *Note:* `--missing` and `--skip-recommended` have precedence over `--include-*`.
 
@@ -537,7 +536,7 @@ first search, making that search slower than subsequent ones.
 ### `developer` \[*`subcommand`*\]
 
 Control Homebrew's developer mode. When developer mode is enabled, `brew update`
-will update Homebrew to the latest commit on the `master` branch instead of the
+will update Homebrew to the latest commit on the `main` branch instead of the
 latest stable version along with some other behaviour changes.
 
 `brew developer` \[`state`\]
@@ -1988,10 +1987,6 @@ checks. Will exit with a non-zero status if any errors are found.
 
 : Audit for app signatures, which are required by macOS on ARM.
 
-`--token-conflicts`
-
-: Audit for token conflicts.
-
 `--tap`
 
 : Check formulae and casks within the given tap, specified as
@@ -3205,11 +3200,15 @@ Run Homebrew's unit and integration tests.
 
 `--changed`
 
-: Only runs tests on files that were changed from the master branch.
+: Only runs tests on files that were changed from the `main` branch.
 
 `--fail-fast`
 
 : Exit early on the first failing test.
+
+`--no-parallel`
+
+: Run tests serially.
 
 `--only`
 
@@ -3371,7 +3370,7 @@ Update the list of GitHub Sponsors in the `Homebrew/brew` README.
 ### `update-test` \[*`options`*\]
 
 Run a test of `brew update` with a new repository clone. If no options are
-passed, use `origin/master` as the start commit.
+passed, use `origin/main` as the start commit.
 
 `--to-tag`
 
