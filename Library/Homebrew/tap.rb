@@ -988,19 +988,20 @@ class Tap
   # Array with autobump names
   sig { returns(T::Array[String]) }
   def autobump
-    # TODO: uncomment when official taps are prepared to use new autobump system
-    #
-    # autobump_packages = if core_cask_tap?
-    #   Homebrew::API::Cask.all_casks
-    # elsif core_tap?
-    #   Homebrew::API::Formula.all_formulae
-    # else
-    #   {}
-    # end
-    #
-    # @autobump ||= autobump_packages.select do |_, p|
-    #   p["autobump"] == true && !p["skip_livecheck"] && !(p["deprecated"] || p["disabled"])
-    # end.keys
+    autobump_packages = if core_cask_tap?
+      Homebrew::API::Cask.all_casks
+    elsif core_tap?
+      Homebrew::API::Formula.all_formulae
+    else
+      {}
+    end
+
+    @autobump ||= autobump_packages.select do |_, p|
+      next if p["deprecated"] || p["disabled"]
+      next if p["skip_livecheck"]
+
+      p["autobump"] == true
+    end.keys
 
     if @autobump.blank?
       @autobump = if (autobump_file = path/HOMEBREW_TAP_AUTOBUMP_FILE).file?
@@ -1079,15 +1080,12 @@ class Tap
   # All locally installed and core taps. Core taps might not be installed locally when using the API.
   sig { returns(T::Array[Tap]) }
   def self.all
-    cache[:all] ||= begin
-      core_taps = [
-        CoreTap.instance,
-        # The conditional is valid here because we only want the cask tap on macOS.
-        (CoreCaskTap.instance if OS.mac?), # rubocop:disable Homebrew/MoveToExtendOS
-      ].compact
+    cache[:all] ||= installed | core_taps
+  end
 
-      installed | core_taps
-    end
+  sig { returns(T::Array[Tap]) }
+  def self.core_taps
+    [CoreTap.instance].freeze
   end
 
   # Enumerate all available {Tap}s.
@@ -1517,3 +1515,5 @@ class TapConfig
     Homebrew::Settings.delete key, repo: tap.path
   end
 end
+
+require "extend/os/tap"
